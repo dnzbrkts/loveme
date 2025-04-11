@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beni Seviyor musun?</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Yatayda ortala */
+            justify-content: center; /* Dikeyde ortala */
+            height: 100vh; /* Tam ekran yüksekliği */
+            margin: 0; /* Body kenar boşluğunu sıfırla */
+            background-color: black;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: opacity 0.5s ease-in-out;
+            text-align: center; /* Yazıları ortala */
+            overflow: hidden; /* Body'de scroll oluşmasını kesin engelle */
+        }
+        img {
+            max-width: 300px; /* Resim çok büyük olmasın */
+            margin-bottom: 30px; /* Alt boşluk */
+        }
+        h2 {
+            color: #00ffff; /* Soru rengi */
+            text-shadow: 2px 2px 4px #000000; /* Gölge */
+            margin-bottom: 30px; /* Alt boşluk */
+            font-size: 2em; /* Boyut */
+        }
+        /* Butonların genel konteyneri */
+        #butonlar {
+            display: flex; /* Butonları yan yana getirir */
+            justify-content: center; /* Yatayda ortalar */
+            align-items: center; /* Dikeyde ortalar */
+            gap: 30px; /* Butonlar arasına boşluk ekler */
+            width: 100%; /* Konteynerin genişlemesini sağlar */
+            flex-wrap: wrap; /* Küçük ekranlarda butonlar alt alta geçebilir */
+             /* Hayır butonu absolute olunca yüksekliği korumak için */
+             min-height: 80px;
+             position: relative; /* Absolute konumlanan hayır için referans olabilir (opsiyonel) */
+        }
+        button {
+            padding: 15px 30px; /* İç boşluk */
+            cursor: pointer; /* Fare imleci */
+            background-color: #333; /* Arka plan */
+            color: #00ffff; /* Yazı rengi */
+            border: 2px solid #00ffff; /* Kenarlık */
+            border-radius: 5px; /* Köşe yuvarlama */
+            /* Pozisyon değişimi için yumuşak geçiş */
+            transition: background-color 0.3s ease, top 0.15s ease-out, left 0.15s ease-out;
+            font-size: 1.5em; /* Yazı boyutu */
+            margin: 5px; /* Wrap durumunda biraz boşluk */
+        }
+        button:hover {
+            background-color: #00ffff; /* Fare üzerine gelince arka plan */
+            color: black; /* Fare üzerine gelince yazı rengi */
+        }
+        /* Hayır butonu başlangıçta absolute DEĞİL, JS ile eklenecek */
+        #hayir {
+            /* Başlangıçta özel stil yok, flex item olarak davranacak */
+            /* JS position: absolute ekleyecek */
+        }
+        /* 'Yaaa biliyordum!' yazısı için stiller */
+        #cevap {
+            display: none; /* Başlangıçta gizli */
+            position: fixed; /* Video üzerinde kalabilir */
+            bottom: 20px; /* Alttan boşluk */
+            left: 50%; /* Ortala */
+            transform: translateX(-50%); /* Tam ortala */
+            font-size: 1.8em; /* Yazı boyutu */
+            color: #ff00ff; /* Renk */
+            text-shadow: 2px 2px 4px #000000; /* Gölge */
+            z-index: 110; /* Video konteynerinin üzerinde */
+        }
+        /* Video konteyneri stilleri (başlangıçta gizli) */
+        #video-container {
+            display: none; /* Başlangıçta gizli */
+            position: fixed; /* Tüm ekranı kaplaması için */
+            top: 0;
+            left: 0;
+            width: 100vw; /* Viewport genişliği */
+            height: 100vh; /* Viewport yüksekliği */
+            background-color: black; /* Tam ekran kaplarken arka plan */
+            z-index: 100; /* Diğer elementlerin üzerinde */
+            /* İçindeki videoyu ortalamak için */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        /* Video elementinin stilleri */
+        #video-container video {
+             width: 100%;  /* Kapsayıcının genişliğine yayıl */
+             height: 100%; /* Kapsayıcının yüksekliğine yayıl */
+             object-fit: contain; /* En/boy oranını koruyarak sığdır */
+             display: block; /* Altında oluşabilecek boşluğu engelle */
+        }
+        /* Gizli elementler için (opsiyonel) */
+        .hidden {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        /* Mobil uyarı penceresi */
+        #mobilUyari {
+            display: none; /* Başlangıçta gizli */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8); /* Yarı saydam siyah */
+            color: white;
+            padding: 20px; /* İç boşluk */
+            border-radius: 10px; /* Köşe yuvarlama */
+            font-size: 1.2em; /* Yazı boyutu */
+            z-index: 120; /* Her şeyin üzerinde */
+        }
+
+    </style>
+</head>
+<body>
+    <div id="mobilUyari">Bu web sitesi en iyi masaüstü deneyimi için tasarlanmıştır.</div>
+
+    <img id="kediFoto" src="kedi.jpg" alt="Tatlı Kedi">
+    <h2 id="soruYazisi">Beni seviyor musun?</h2>
+
+    <div id="butonlar">
+        <button id="evet">Evet ❤️</button>
+        <button id="hayir">Hayır </button>
+    </div>
+
+    <div id="cevap">Yaaa biliyordum!</div>
+
+    <div id="video-container">
+        <video controls autoplay muted loop>
+            <source src="video.mp4" type="video/mp4">
+            Tarayıcınız video etiketini desteklemiyor.
+        </video>
+    </div>
+
+    <script>
+        // Elementleri seç
+        const mobilUyariDiv = document.getElementById('mobilUyari');
+        const kediFoto = document.getElementById('kediFoto');
+        const soruYazisi = document.getElementById('soruYazisi');
+        const butonlarDiv = document.getElementById('butonlar');
+        const evetButton = document.getElementById('evet');
+        const hayirButton = document.getElementById('hayir');
+        const cevapDiv = document.getElementById('cevap');
+        const videoContainer = document.getElementById('video-container');
+        const localVideo = videoContainer.querySelector('video');
+
+        // Durum değişkenleri
+        let hayirIlkHareketYaptiMi = false; // Hayır butonu ilk hareketini yaptı mı?
+        let hayirMouseOverListener = null; // Eklenen listener referansı
+
+        // Hayır butonunu ekran içinde rastgele hareket ettiren fonksiyon
+        function moveHayirButton() {
+            // Buton yoksa veya henüz ilk hareket başlamadıysa (absolute değilse) çık
+            if (!hayirButton || !hayirIlkHareketYaptiMi) return;
+
+            // Kenarlarda bırakılacak güvenli boşluk (piksel)
+            const buffer = 25;
+
+            // Kullanılabilir viewport boyutları (kaydırma çubukları hariç)
+            const viewWidth = document.documentElement.clientWidth;
+            const viewHeight = document.documentElement.clientHeight;
+
+            // Butonun mevcut boyutları
+            const buttonWidth = hayirButton.clientWidth;
+            const buttonHeight = hayirButton.clientHeight;
+
+            // Butonun Gidebileceği Maksimum Koordinatlar (sağ ve alt sınırlar)
+            // Sağ sınır = Ekran Genişliği - Buton Genişliği - Sağ Boşluk
+            const maxX = viewWidth - buttonWidth - buffer;
+            // Alt sınır = Ekran Yüksekliği - Buton Yüksekliği - Alt Boşluk
+            const maxY = viewHeight - buttonHeight - buffer;
+
+            // Butonun Gidebileceği Minimum Koordinatlar (sol ve üst sınırlar)
+            const minX = buffer;
+            const minY = buffer;
+
+            // Güvenli alan içinde rastgele X ve Y koordinatları üret
+            // Formül: Math.random() * (max - min) + min
+            let randomX = Math.random() * (maxX - minX) + minX;
+            let randomY = Math.random() * (maxY - minY) + minY;
+
+            // Hesaplanan değerlerin kesinlikle sınırlar içinde kaldığından emin ol
+            randomX = Math.max(minX, Math.min(randomX, maxX));
+            randomY = Math.max(minY, Math.min(randomY, maxY));
+
+            // Yeni pozisyonu uygula
+            hayirButton.style.left = randomX + 'px';
+            hayirButton.style.top = randomY + 'px';
+        }
+
+        // Hayır butonuna fare gelince çalışacak ana fonksiyon
+        function handleHayirMouseOver() {
+            // Eğer buton ilk hareketini henüz yapmadıysa...
+            if (!hayirIlkHareketYaptiMi) {
+                // 1. Onu absolute konumlamaya geçir
+                hayirButton.style.position = 'absolute';
+                // 2. İlk hareketin yapıldığını işaretle
+                hayirIlkHareketYaptiMi = true;
+                console.log("Hayır butonu absolute yapıldı ve kaçma efekti başladı.");
+                 // 3. Pozisyonu hemen uygula ki görünür olsun (ilk moveHayirButton çağrısı zaten yapacak)
+                 // Belki küçük bir gecikme eklenebilir ama şimdilik gereksiz.
+            }
+            // Her fare üzerine gelindiğinde (ilk sefer dahil) butonu hareket ettir
+            moveHayirButton();
+        }
+
+        // Masaüstü için kaçma efekti etkileşimini kuran fonksiyon
+        function setupDesktopInteraction() {
+             // Hayır butonu varsa ve listener daha önce eklenmemişse
+             if (hayirButton && !hayirMouseOverListener) {
+                 console.log("Masaüstü etkileşimi (kaçma efekti) kuruluyor.");
+                 hayirMouseOverListener = handleHayirMouseOver; // Listener fonksiyonunu değişkene ata
+                 hayirButton.addEventListener('mouseover', hayirMouseOverListener); // Listener'ı ekle
+             }
+        }
+
+        // Masaüstü etkileşimini kaldıran ve durumu sıfırlayan fonksiyon
+        function removeDesktopInteraction() {
+             // Hayır butonu ve eklenmiş bir listener varsa
+             if (hayirButton && hayirMouseOverListener) {
+                console.log("Masaüstü etkileşimi kaldırılıyor ve durum sıfırlanıyor.");
+                hayirButton.removeEventListener('mouseover', hayirMouseOverListener); // Listener'ı kaldır
+                hayirMouseOverListener = null; // Referansı temizle
+             }
+             // Durumu başlangıca döndür
+             hayirIlkHareketYaptiMi = false;
+             if (hayirButton) {
+                 hayirButton.style.position = ''; // Absolute konumlamayı kaldır
+                 hayirButton.style.top = ''; // Eklenmiş pozisyonları temizle
+                 hayirButton.style.left = '';
+             }
+        }
+
+        // Başlangıçtaki (masaüstü) görünümü ayarlayan fonksiyon
+        function showInitialView() {
+            mobilUyariDiv.style.display = 'none'; // Mobil uyarıyı gizle
+            if (kediFoto) kediFoto.style.display = 'block'; // Resmi göster
+            if (soruYazisi) soruYazisi.style.display = 'block'; // Soruyu göster
+            if (butonlarDiv) butonlarDiv.style.display = 'flex'; // Butonları göster (flex olarak)
+            if (cevapDiv) cevapDiv.style.display = 'none'; // Cevap yazısını gizle
+            if (videoContainer) videoContainer.style.display = 'none'; // Video konteynerini gizle
+
+            removeDesktopInteraction(); // Önce mevcut durumu temizle ve sıfırla
+            setupDesktopInteraction(); // Sonra masaüstü etkileşimini kur
+        }
+
+        // Mobil uyarıyı gösteren fonksiyon
+        function showMobileWarning() {
+             mobilUyariDiv.style.display = 'block'; // Uyarıyı göster
+             // Diğer her şeyi gizle
+             if (kediFoto) kediFoto.style.display = 'none';
+             if (soruYazisi) soruYazisi.style.display = 'none';
+             if (butonlarDiv) butonlarDiv.style.display = 'none';
+             if (cevapDiv) cevapDiv.style.display = 'none';
+             if (videoContainer) videoContainer.style.display = 'none';
+             removeDesktopInteraction(); // Mobil'de etkileşimi kaldır ve sıfırla
+        }
+
+        //--- OLAY DİNLEYİCİLERİ ---
+
+        // Evet butonuna tıklanınca...
+         evetButton.addEventListener('click', () => {
+                console.log("Evet butonuna tıklandı.");
+                // Başlangıç elementlerini gizle
+                if (kediFoto) kediFoto.style.display = 'none';
+                if (soruYazisi) soruYazisi.style.display = 'none';
+                if (butonlarDiv) butonlarDiv.style.display = 'none';
+                if (mobilUyariDiv) mobilUyariDiv.style.display = 'none';
+                if (cevapDiv) cevapDiv.style.display = 'none'; // Cevabı da gizle
+
+                // Video konteynerini göster
+                videoContainer.style.display = 'flex';
+                // Hayır butonu etkileşimini tamamen kaldır ve sıfırla
+                removeDesktopInteraction();
+
+                // Videoyu oynat (başından başlatarak)
+                if(localVideo) {
+                    localVideo.currentTime = 0; // Başa sar
+                    localVideo.play().catch(error => {
+                        // Autoplay engellenirse veya başka bir hata olursa
+                        console.error("Video oynatma hatası:", error);
+                    });
+                }
+            });
+
+         // Pencere boyutu değiştiğinde...
+         function handleResize() {
+             // Eğer video zaten gösteriliyorsa hiçbir şey yapma
+             if (videoContainer.style.display === 'flex') {
+                 return;
+             }
+
+             // Küçük ekran (Mobil)
+             if (window.innerWidth <= 768) {
+                 console.log("Mobil boyuta geçildi veya mobil boyutta kalındı.");
+                 showMobileWarning();
+             }
+             // Büyük ekran (Masaüstü)
+             else {
+                 console.log("Masaüstü boyuta geçildi veya masaüstü boyutta kalındı.");
+                 showInitialView();
+             }
+         }
+
+         // Pencere boyutu değiştiğinde 'handleResize' fonksiyonunu çağır
+         window.addEventListener('resize', handleResize);
+
+         // Sayfa ilk yüklendiğinde (DOM hazır olunca) 'handleResize' fonksiyonunu çağır
+         document.addEventListener('DOMContentLoaded', handleResize);
+
+    </script>
+</body>
+</html>
